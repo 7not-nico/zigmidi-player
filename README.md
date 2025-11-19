@@ -1,5 +1,8 @@
 # MIDI Player
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-7not--nico/zigmidi--player-blue)](https://github.com/7not-nico/zigmidi-player)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A simple CLI MIDI player built with Zig, FluidSynth, and ALSA. This project demonstrates a KISS (Keep It Simple, Stupid) approach to building performant, clean CLI applications in Zig.
 
 ## Features
