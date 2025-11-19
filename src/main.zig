@@ -37,6 +37,18 @@ pub fn main() !void {
     // Load available MIDI files from midis/ directory
     try loadPlaylist(&midi_player.state.playlist, allocator);
 
+    // Load preferred soundfont
+    // Use config soundfont if available, otherwise default
+    // We need to cast config.soundfont_path to [:0]const u8
+    const soundfont_path_slice = if (args.len > 2) args[2] else config.soundfont_path;
+    const soundfont_path = try allocator.dupeZ(u8, soundfont_path_slice);
+
+    try midi_player.loadSoundFont(soundfont_path);
+
+    // Set up raw terminal mode
+    try setupRawMode();
+    defer restoreMode();
+
     if (args.len < 2) {
         // Interactive Search Mode
         try searchAndFilter(&midi_player, allocator);
@@ -71,18 +83,6 @@ pub fn main() !void {
         // If the argument wasn't found in playlist (e.g. absolute path outside), we play it but index might be wrong.
         // If it WAS found, we updated index.
     }
-
-    // Load preferred soundfont
-    // Use config soundfont if available, otherwise default
-    // We need to cast config.soundfont_path to [:0]const u8
-    const soundfont_path_slice = if (args.len > 2) args[2] else config.soundfont_path;
-    const soundfont_path = try allocator.dupeZ(u8, soundfont_path_slice);
-
-    try midi_player.loadSoundFont(soundfont_path);
-
-    // Set up raw terminal mode
-    try setupRawMode();
-    defer restoreMode();
 
     midi_player.state.is_playing = true;
 
