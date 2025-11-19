@@ -17,17 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Architecture guide (`docs/ARCHITECTURE.md`)
   - Developer guide (`docs/DEVELOPER.md`)
   - Configuration guide (`docs/CONFIG.md`)
-  - Troubleshooting FAQ (`docs/TROUBLESHOOTING.md`)
+  - Troubleshooting FAQ (`docs/TROUBLESHOUTING.md`)
   - Documentation index (`docs/README.md`)
 - Project infrastructure
   - MIT License (`LICENSE`)
   - Security policy (`SECURITY.md`)
   - Git ignore rules (`.gitignore`)
+- CI/CD pipeline with GitHub Actions
+- Issue templates for structured bug reports and feature requests
 
 ### Changed
 - Updated README.md to reflect modular architecture
 - Improved project structure documentation
 - Enhanced user guide with new features
+
+### Fixed
+- Fixed initialization order for soundfont loading and terminal setup to occur before interactive search mode
 
 ## [0.1.0] - 2024-01-XX
 
