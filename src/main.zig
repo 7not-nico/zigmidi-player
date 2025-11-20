@@ -19,6 +19,15 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
+    // Check for profiling flag
+    var profiling = false;
+    for (args[1..]) |arg| {
+        if (std.mem.eql(u8, arg, "--profile")) {
+            profiling = true;
+            break;
+        }
+    }
+
     // Load Config
     var config = config_mod.Config.load(allocator) catch config_mod.Config{};
     // We don't defer config deinit because it might have allocated strings we want to keep for now,
@@ -35,7 +44,11 @@ pub fn main() !void {
     midi_player.state.current_index = config.last_played_index;
 
     // Load available MIDI files from midis/ directory
+    if (profiling) std.debug.print("Loading playlist...\n", .{});
+    const playlist_start = std.time.milliTimestamp();
     try loadPlaylist(&midi_player.state.playlist, allocator);
+    const playlist_end = std.time.milliTimestamp();
+    if (profiling) std.debug.print("Playlist load time: {} ms ({} files)\n", .{ playlist_end - playlist_start, midi_player.state.playlist.items.len });
 
     // Load preferred soundfont
     // Use config soundfont if available, otherwise default
@@ -43,7 +56,11 @@ pub fn main() !void {
     const soundfont_path_slice = if (args.len > 2) args[2] else config.soundfont_path;
     const soundfont_path = try allocator.dupeZ(u8, soundfont_path_slice);
 
+    if (profiling) std.debug.print("Loading soundfont: {s}\n", .{soundfont_path});
+    const soundfont_start = std.time.milliTimestamp();
     try midi_player.loadSoundFont(soundfont_path);
+    const soundfont_end = std.time.milliTimestamp();
+    if (profiling) std.debug.print("Soundfont load time: {} ms\n", .{soundfont_end - soundfont_start});
 
     // Set up raw terminal mode
     try setupRawMode();
