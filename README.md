@@ -3,15 +3,15 @@
 [![GitHub Repository](https://img.shields.io/badge/GitHub-7not--nico/zigmidi--player-blue)](https://github.com/7not-nico/zigmidi-player)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A simple CLI MIDI player built with Zig, FluidSynth, and ALSA. This project demonstrates a KISS (Keep It Simple, Stupid) approach to building performant, clean CLI applications in Zig.
+A cross-platform CLI MIDI player built with Zig and FluidSynth. Runs natively on Linux, Windows, macOS, and BSD with optimized audio backends for each platform. Demonstrates a KISS (Keep It Simple, Stupid) approach to building performant, clean CLI applications in Zig.
 
 ## Features
 
 - **High-Quality Synthesis**: Uses FluidSynth for professional MIDI playback
-- **Low-Latency Audio**: ALSA backend for real-time audio output
+- **Cross-Platform**: Native support for Linux, Windows, macOS, and BSD
+- **Low-Latency Audio**: Platform-optimized backends (ALSA, WASAPI, CoreAudio, OSS)
 - **Interactive Controls**: Skip tracks, loop, pause/resume during playback
 - **Project Organization**: Dedicated directories for MIDI files and SoundFonts
-- **Cross-Platform Ready**: Easily extensible to other audio backends
 - **Memory Efficient**: Minimal allocations, stack-based where possible
 
 ## Architecture
@@ -37,9 +37,9 @@ A simple CLI MIDI player built with Zig, FluidSynth, and ALSA. This project demo
 - Cross-session state preservation
 
 **build.zig** - Build system
-- Cross-platform compilation setup
-- External library linking (FluidSynth, ALSA)
-- Custom build steps for development
+- Cross-platform compilation with platform detection
+- Conditional audio library linking per platform
+- Cross-compilation support for all targets
 
 ### Design Principles
 
@@ -48,10 +48,39 @@ A simple CLI MIDI player built with Zig, FluidSynth, and ALSA. This project demo
 - **Clean Code**: Zig best practices, explicit error handling
 - **Modular**: Easy to extend with additional features
 
+## Platform Support
+
+| Platform | Audio Backend | Status |
+|----------|---------------|--------|
+| **Linux** | ALSA | ✅ Fully Supported |
+| **Windows** | WASAPI | ✅ Fully Supported |
+| **macOS** | CoreAudio | ✅ Fully Supported |
+| **FreeBSD** | OSS | ✅ Fully Supported |
+| **OpenBSD** | OSS | ✅ Fully Supported |
+| **NetBSD** | OSS | ✅ Fully Supported |
+
 ## Building
 
+### Native Build (Current Platform)
 ```bash
 zig build
+```
+
+### Cross-Compilation
+```bash
+# For Windows from Linux/macOS
+zig build -Dtarget=x86_64-windows
+
+# For macOS from Linux/Windows
+zig build -Dtarget=aarch64-macos  # Apple Silicon
+zig build -Dtarget=x86_64-macos   # Intel Mac
+
+# For Linux from other platforms
+zig build -Dtarget=x86_64-linux
+zig build -Dtarget=aarch64-linux  # ARM64/Raspberry Pi
+
+# For FreeBSD
+zig build -Dtarget=x86_64-freebsd
 ```
 
 ## Usage
@@ -185,14 +214,42 @@ Intelligent path resolution with multiple strategies:
 
 ## Dependencies
 
-- **FluidSynth**: `libfluidsynth-dev`
-- **ALSA**: `libasound2-dev`
-- **Zig**: 0.15+
-
-Install on Ubuntu/Debian:
+### Linux (Ubuntu/Debian)
 ```bash
 sudo apt install libfluidsynth-dev libasound2-dev
 ```
+
+### Linux (Fedora/RHEL)
+```bash
+sudo dnf install fluidsynth-devel alsa-lib-devel
+```
+
+### Linux (Arch)
+```bash
+sudo pacman -S fluidsynth alsa-lib
+```
+
+### Windows
+```powershell
+# Using vcpkg
+vcpkg install fluidsynth:x64-windows
+
+# Or using msys2
+pacman -S mingw-w64-x86_64-fluidsynth
+```
+
+### macOS
+```bash
+brew install fluid-synth
+```
+
+### FreeBSD
+```bash
+pkg install fluidsynth
+```
+
+### Build Requirements
+- **Zig**: 0.13.0 or later
 
 ## Testing
 

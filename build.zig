@@ -13,12 +13,16 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    // Link FluidSynth
+    // Link FluidSynth (cross-platform)
     exe.linkLibC();
     exe.linkSystemLibrary("fluidsynth");
 
-    // Link ALSA
-    exe.linkSystemLibrary("asound");
+    // Link platform-specific audio libraries
+    // ALSA is Linux-only, other platforms use built-in audio (WASAPI/CoreAudio/OSS)
+    if (target.result.os.tag == .linux) {
+        exe.linkSystemLibrary("asound"); // ALSA for Linux
+    }
+    // Windows uses WASAPI (built-in), macOS uses CoreAudio (built-in), BSD uses OSS (built-in)
 
     b.installArtifact(exe);
 

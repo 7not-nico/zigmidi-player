@@ -25,7 +25,16 @@ pub const MidiPlayer = struct {
         const settings = c.new_fluid_settings();
         if (settings == null) return error.FluidSynthInitFailed;
 
-        _ = c.fluid_settings_setstr(settings, "audio.driver", "alsa");
+        // Select audio driver based on target platform (compile-time detection)
+        const builtin = @import("builtin");
+        const audio_driver = switch (builtin.os.tag) {
+            .linux => "alsa",
+            .windows => "wasapi",
+            .macos => "coreaudio",
+            .freebsd, .openbsd, .netbsd => "oss",
+            else => "auto", // Let FluidSynth decide
+        };
+        _ = c.fluid_settings_setstr(settings, "audio.driver", audio_driver);
 
         const synth = c.new_fluid_synth(settings);
         if (synth == null) return error.FluidSynthSynthFailed;
