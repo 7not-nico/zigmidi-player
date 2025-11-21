@@ -35,7 +35,12 @@ pub const MidiPlayer = struct {
         const settings = c.new_fluid_settings();
         if (settings == null) return error.FluidSynthInitFailed;
 
+        // Performance settings - set BEFORE creating synth/audio driver
         _ = c.fluid_settings_setstr(settings, "audio.driver", "alsa");
+        _ = c.fluid_settings_setnum(settings, "synth.sample-rate", 22050.0);
+        _ = c.fluid_settings_setint(settings, "synth.polyphony", 128); // Reduce voice count
+        _ = c.fluid_settings_setnum(settings, "synth.gain", 0.2);
+        _ = c.fluid_settings_setint(settings, "synth.cpu-cores", 2); // Limit CPU cores
 
         const synth = c.new_fluid_synth(settings);
         if (synth == null) return error.FluidSynthSynthFailed;
@@ -45,10 +50,6 @@ pub const MidiPlayer = struct {
 
         // Set initial volume
         _ = c.fluid_synth_set_gain(synth, 0.2);
-
-        // Performance settings
-        _ = c.fluid_settings_setnum(settings, "audio.period-size", 256);
-        _ = c.fluid_settings_setnum(settings, "audio.periods", 4);
 
         return MidiPlayer{
             .settings = settings,
@@ -77,20 +78,9 @@ pub const MidiPlayer = struct {
     }
 
     pub fn loadAndAnalyzeMidi(self: *MidiPlayer, path: [:0]const u8) !void {
-        // Parse MIDI file first
-        var parser = midi_parser.MidiParser.init(self.allocator);
-        // We try to parse, but if it fails we still try to play it with FluidSynth
-        // This ensures robustness - if our parser has issues, playback might still work
-        if (parser.parseFile(path)) |midi_file| {
-            if (self.current_midi_file) |*prev| prev.deinit();
-            self.current_midi_file = midi_file;
-        } else |_| {
-            // Parser failed, clear previous file info
-            if (self.current_midi_file) |*prev| prev.deinit();
-            self.current_midi_file = null;
-            // We could log this error but for now we proceed to playback
-        }
-
+        // Skip MIDI parsing for lower CPU usage - just play directly
+        if (self.current_midi_file) |*prev| prev.deinit();
+        self.current_midi_file = null;
         try self.playFile(path);
     }
 

@@ -56,11 +56,11 @@ pub const UI = struct {
                 std.debug.print("  ... and {d} more\n", .{matches_count - 15});
             }
 
-            // Blocking read for responsiveness
+            // Blocking read with longer sleep for lower CPU
             var key: ?u8 = null;
             while (key == null) {
                 key = try checkInput();
-                if (key == null) _ = c.usleep(10000); // 10ms wait
+                if (key == null) _ = c.usleep(50000); // 50ms wait
             }
 
             if (key) |k| {
@@ -105,6 +105,15 @@ pub const UI = struct {
         allocator: std.mem.Allocator,
     ) !void {
         midi_player.state.is_playing = true;
+
+        // State tracking for smart progress updates
+        const ProgressType = struct { current: i32, total: i32 };
+        var last_progress: ProgressType = .{ .current = -1, .total = -1 };
+        var last_voices: i32 = -1;
+        var progress_update_counter: u32 = 0;
+
+        // Buffer for progress string formatting to reduce allocations
+        var progress_buffer: [128]u8 = undefined;
 
         // Playlist Loop
         while (midi_player.state.is_playing) {
@@ -185,8 +194,23 @@ pub const UI = struct {
                     }
                 }
 
-                // Update Progress UI periodically
-                try drawProgress(midi_player);
+                // Smart progress updates - only redraw when state changes significantly
+                progress_update_counter += 1;
+                if (progress_update_counter % 2 == 0) { // Only update every 2nd iteration
+                    const progress = midi_player.getProgress();
+                    const voices = midi_player.getActiveVoiceCount();
+
+                    // Only redraw if progress or voices changed significantly
+                    if (progress.current != last_progress.current or
+                        progress.total != last_progress.total or
+                        @divTrunc(@abs(voices - last_voices), 5) > 0)
+                    {
+                        try drawProgress(midi_player, &progress_buffer);
+                        last_progress.current = progress.current;
+                        last_progress.total = progress.total;
+                        last_voices = voices;
+                    }
+                }
 
                 // Check status
                 if (!midi_player.isPlaying() and !midi_player.state.is_paused) {
@@ -198,7 +222,7 @@ pub const UI = struct {
                     }
                 }
 
-                _ = c.usleep(100000); // 100ms
+                _ = c.usleep(250000); // 250ms - 4Hz update rate
             }
 
             midi_player.stop();
@@ -253,8 +277,7 @@ fn drawUI(player: *player_mod.MidiPlayer, current_name: []const u8) !void {
     std.debug.print("\x1b[2J\x1b[H", .{}); // Clear screen
     std.debug.print("\x1b[1;36mMIDI Player\x1b[0m\n\n", .{}); // Cyan Header
 
-    // Add MIDI file info
-    try drawMidiInfo(player);
+    // Skip MIDI file info for lower CPU usage
 
     std.debug.print("Now Playing: \x1b[1m{s}\x1b[0m ({d}/{d})\n", .{ current_name, player.state.current_index + 1, player.state.playlist.items.len });
 
@@ -270,20 +293,15 @@ fn drawUI(player: *player_mod.MidiPlayer, current_name: []const u8) !void {
 }
 
 /// Draw progress bar with active voice visualizer
-fn drawProgress(player: *player_mod.MidiPlayer) !void {
+fn drawProgress(player: *player_mod.MidiPlayer, buffer: []u8) !void {
     const progress = player.getProgress();
     const voices = player.getActiveVoiceCount();
 
-    // Simple visualizer: bar graph of active voices
-    const bar_len = @min(@as(usize, @intCast(@divTrunc(voices, 2))), 20);
-    var bar_buf: [21]u8 = undefined;
-    for (0..bar_len) |i| bar_buf[i] = '|';
-    bar_buf[bar_len] = 0;
-    const bar = bar_buf[0..bar_len];
-
+    // Simplified visualizer: just show voice count
     if (progress.total > 0) {
         const percent = @as(f64, @floatFromInt(progress.current)) / @as(f64, @floatFromInt(progress.total)) * 100.0;
-        std.debug.print("\rProgress: {d}/{d} ticks ({d:.1}%)  Activity: \x1b[1;32m{s}\x1b[0m\x1b[K", .{ progress.current, progress.total, percent, bar });
+        const progress_str = try std.fmt.bufPrint(buffer, "\rProgress: {d:.1}%  Voices: {d}\x1b[K", .{ percent, voices });
+        std.debug.print("{s}", .{progress_str});
     }
 }
 
@@ -327,8 +345,11 @@ pub fn restoreMode() void {
     _ = c.tcsetattr(std.posix.STDIN_FILENO, c.TCSAFLUSH, &original_termios);
 }
 
-/// Check for keyboard input (non-blocking)
+/// Check for keyboard input (non-blocking with minimal CPU usage)
 fn checkInput() !?u8 {
+    // Use a very short timeout to reduce CPU usage while maintaining responsiveness
+    _ = c.usleep(1000); // 1ms delay instead of busy polling
+
     const stdin = std.fs.File.stdin();
     var buf: [1]u8 = undefined;
     const bytes_read = try stdin.read(&buf);
