@@ -1,0 +1,49 @@
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+ALSA lib confmisc.c:1377:(snd_func_refer) Unable to find definition 'cards.0.pcm.hdmi.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM hdmi
+ALSA lib confmisc.c:1377:(snd_func_refer) Unable to find definition 'cards.0.pcm.hdmi.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM hdmi
+ALSA lib confmisc.c:1377:(snd_func_refer) Unable to find definition 'cards.0.pcm.modem.0:CARD=0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline:CARD=0,DEV=0
+ALSA lib confmisc.c:1377:(snd_func_refer) Unable to find definition 'cards.0.pcm.modem.0:CARD=0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline:CARD=0,DEV=0
+ALSA lib confmisc.c:1377:(snd_func_refer) Unable to find definition 'cards.0.pcm.modem.0:CARD=0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM phoneline
+ALSA lib confmisc.c:1377:(snd_func_refer) Unable to find definition 'cards.0.pcm.modem.0:CARD=0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM phoneline
+fluidsynth: warning: SDL3 not initialized, SDL3 audio driver won't be usable. Have you called SDL_Init(SDL_INIT_AUDIO) ?
+fluidsynth: warning: Failed to set thread to high priority
+[2J[H[1;36mMIDI Player[0m
+
+[1;36mMIDI File Info:[0m
+  Format: Type 1
+  Tracks: 1
+  Division: 480 ticks/quarter
+  Events: 848
+
+Now Playing: [1mMario Bros. - Super Mario Bros. Theme.mid[0m (4/28)
+Status: [32mPLAYING[0m   Loop: [35mON[0m   Volume: 2.0
+
+Controls:
+  [Space] Pause/Resume   [n] Next   [p] Prev
+  [l] Loop               [+/-] Volume
+  [/] Search             [q] Quit
+
+fluidsynth: Ignoring unrecognized meta event type 0x8
+fluidsynth: Ignoring unrecognized meta event type 0xA
+fluidsynth: warning: Instrument not found on channel 0 [bank=0 prog=40], substituted [bank=0 prog=0]
+Progress: 94/70800 ticks (0.1%)  Activity: [1;32m|[0m[KProgress: 192/70800 ticks (0.3%)  Activity: [1;32m||[0m[KProgress: 288/70800 ticks (0.4%)  Activity: [1;32m||[0m[KProgress: 384/70800 ticks (0.5%)  Activity: [1;32m|||[0m[KProgress: 479/70800 ticks (0.7%)  Activity: [1;32m|||[0m[KProgress: 575/70800 ticks (0.8%)  Activity: [1;32m|||[0m[KProgress: 671/70800 ticks (0.9%)  Activity: [1;32m|||[0m[KProgress: 767/70800 ticks (1.1%)  Activity: [1;32m||||[0m[KProgress: 865/70800 ticks (1.2%)  Activity: [1;32m||||[0m[KProgress: 961/70800 ticks (1.4%)  Activity: [1;32m|||||[0m[KProgress: 1057/70800 ticks (1.5%)  Activity: [1;32m|||||[0m[KProgress: 1153/70800 ticks (1.6%)  Activity: [1;32m|||||[0m[KProgress: 1249/70800 ticks (1.8%)  Activity: [1;32m|||||[0m[KProgress: 1345/70800 ticks (1.9%)  Activity: [1;32m|||||[0m[KProgress: 1440/70800 ticks (2.0%)  Activity: [1;32m||||||[0m[KProgress: 1538/70800 ticks (2.2%)  Activity: [1;32m||||||[0m[KProgress: 1634/70800 ticks (2.3%)  Activity: [1;32m||||||[0m[K

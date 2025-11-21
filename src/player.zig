@@ -4,6 +4,15 @@ const c = @cImport({
     @cInclude("unistd.h"); // For usleep if needed inside, though main loop handles sleep usually.
 });
 
+const midi_parser = @import("midi_parser.zig");
+
+pub const MidiInfo = struct {
+    format: u16,
+    num_tracks: u16,
+    division: u16,
+    total_events: usize,
+};
+
 pub const PlayerState = struct {
     current_index: usize = 0,
     playlist: std.ArrayList([]const u8),
@@ -20,6 +29,7 @@ pub const MidiPlayer = struct {
     player: ?*c.fluid_player_t,
     allocator: std.mem.Allocator,
     state: PlayerState,
+    current_midi_file: ?midi_parser.MidiFile = null,
 
     pub fn init(allocator: std.mem.Allocator) !MidiPlayer {
         const settings = c.new_fluid_settings();
@@ -36,6 +46,10 @@ pub const MidiPlayer = struct {
         // Set initial volume
         _ = c.fluid_synth_set_gain(synth, 0.2);
 
+        // Performance settings
+        _ = c.fluid_settings_setnum(settings, "audio.period-size", 256);
+        _ = c.fluid_settings_setnum(settings, "audio.periods", 4);
+
         return MidiPlayer{
             .settings = settings,
             .synth = synth,
@@ -49,6 +63,7 @@ pub const MidiPlayer = struct {
     }
 
     pub fn deinit(self: *MidiPlayer) void {
+        if (self.current_midi_file) |*f| f.deinit();
         if (self.player) |p| _ = c.delete_fluid_player(p);
         if (self.adriver) |a| _ = c.delete_fluid_audio_driver(a);
         if (self.synth) |s| _ = c.delete_fluid_synth(s);
@@ -59,6 +74,40 @@ pub const MidiPlayer = struct {
     pub fn loadSoundFont(self: *MidiPlayer, path: [:0]const u8) !void {
         const sf_id = c.fluid_synth_sfload(self.synth, path, 1);
         if (sf_id == -1) return error.SoundFontLoadFailed;
+    }
+
+    pub fn loadAndAnalyzeMidi(self: *MidiPlayer, path: [:0]const u8) !void {
+        // Parse MIDI file first
+        var parser = midi_parser.MidiParser.init(self.allocator);
+        // We try to parse, but if it fails we still try to play it with FluidSynth
+        // This ensures robustness - if our parser has issues, playback might still work
+        if (parser.parseFile(path)) |midi_file| {
+            if (self.current_midi_file) |*prev| prev.deinit();
+            self.current_midi_file = midi_file;
+        } else |_| {
+            // Parser failed, clear previous file info
+            if (self.current_midi_file) |*prev| prev.deinit();
+            self.current_midi_file = null;
+            // We could log this error but for now we proceed to playback
+        }
+
+        try self.playFile(path);
+    }
+
+    pub fn getMidiInfo(self: *MidiPlayer) ?MidiInfo {
+        if (self.current_midi_file) |file| {
+            var total: usize = 0;
+            for (file.tracks) |track| {
+                total += track.events.items.len;
+            }
+            return MidiInfo{
+                .format = file.header.format,
+                .num_tracks = file.header.num_tracks,
+                .division = file.header.division,
+                .total_events = total,
+            };
+        }
+        return null;
     }
 
     pub fn playFile(self: *MidiPlayer, path: [:0]const u8) !void {
