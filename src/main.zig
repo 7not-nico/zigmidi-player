@@ -378,24 +378,50 @@ fn printUsage() !void {
     , .{});
 }
 
-// Load all MIDI files from the midis/ directory
+// Load all MIDI files from the midis/ directory recursively
 fn loadPlaylist(playlist: *std.ArrayList([]const u8), allocator: std.mem.Allocator) !void {
     var dir = std.fs.cwd().openDir("midis", .{ .iterate = true }) catch return;
     defer dir.close();
 
-    var iter = dir.iterate();
-    while (try iter.next()) |entry| {
-        if (entry.kind == .file and std.mem.endsWith(u8, entry.name, ".mid")) {
-            const name = try allocator.dupe(u8, entry.name);
-            try playlist.append(allocator, name);
-        }
-    }
+    // Recursively load MIDI files from this directory and subdirectories
+    try loadPlaylistRecursive(dir, "", playlist, allocator);
+
     // Sort playlist for consistent order
     std.sort.block([]const u8, playlist.items, {}, struct {
         fn lessThan(_: void, lhs: []const u8, rhs: []const u8) bool {
             return std.mem.lessThan(u8, lhs, rhs);
         }
     }.lessThan);
+}
+
+// Helper function to recursively load MIDI files
+fn loadPlaylistRecursive(dir: std.fs.Dir, relative_path: []const u8, playlist: *std.ArrayList([]const u8), allocator: std.mem.Allocator) !void {
+    var iter = dir.iterate();
+    while (try iter.next()) |entry| {
+        // Build the relative path for this entry
+        const entry_path = if (relative_path.len > 0)
+            try std.fs.path.join(allocator, &[_][]const u8{ relative_path, entry.name })
+        else
+            try allocator.dupe(u8, entry.name);
+        defer allocator.free(entry_path);
+
+        switch (entry.kind) {
+            .file => {
+                // Check if it's a MIDI file
+                if (std.mem.endsWith(u8, entry.name, ".mid")) {
+                    const name = try allocator.dupe(u8, entry_path);
+                    try playlist.append(allocator, name);
+                }
+            },
+            .directory => {
+                // Recursively process subdirectory
+                var subdir = try dir.openDir(entry.name, .{ .iterate = true });
+                defer subdir.close();
+                try loadPlaylistRecursive(subdir, entry_path, playlist, allocator);
+            },
+            else => {},
+        }
+    }
 }
 
 fn listMidis(midis: [][]const u8) !void {
